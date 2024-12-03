@@ -1,0 +1,35 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  padding: 50px;
+}
+
+h1 {
+  color: #2D3B8B;
+}
+
+form {
+  margin: 20px 0;
+}
+
+input[type="file"] {
+  margin-right: 10px;
+}
+
+button {
+  background-color: #2D3B8B;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #1e295e;
+}
+
+.result {
+  font-weight: bold;
+  color: red;
+}
