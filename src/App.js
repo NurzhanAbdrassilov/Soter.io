@@ -6,6 +6,7 @@ function App() {
   const [contractCode, setContractCode] = useState('');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false); // State for loading indicator
+  const [taskCount, setTaskCount] = useState(0);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -25,9 +26,16 @@ function App() {
     if (contractFile || contractCode) {
       // Simulate backend processing
       setLoading(true);
+      setResult('');
+      const currentTask = taskCount + 1;
       setTimeout(() => {
-        setLoading(false); // Stop the loading state
-        setResult('The contract is unsafe.'); // Display the result
+        setLoading(false);
+        if (currentTask % 2 === 0) {
+          setResult('The contract is safe.');
+        } else {
+          setResult('The contract is unsafe.');
+        }
+        setTaskCount(currentTask);
       }, Math.random() * 2000 + 3000); // Random delay between 3-5 seconds
     } else {
       setResult('Please upload a smart contract file or paste the code.');
@@ -59,6 +67,7 @@ function App() {
                   disabled={contractFile !== null}
                 ></textarea>
                 <p className="or-text">OR</p>
+                <div className="file-upload-wrapper">
                 <label className="file-upload">
                   <input
                     type="file"
@@ -73,6 +82,7 @@ function App() {
                       <strong>Uploaded file:</strong> {contractFile}
                     </span>
                   )}
+                  </div>
               </div>
               <button type="submit" className="scan-button" disabled={loading}>
                 {loading ? (
@@ -84,7 +94,9 @@ function App() {
                 )}
               </button>
             </form>
-            {result && <p className="result">{result}</p>}
+            {result && (
+              <p className={`result ${result.includes('unsafe') ? 'unsafe' : 'safe'}`}>{result}</p>
+            )}
           </div>
         </div>
       </div>

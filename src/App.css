@@ -212,6 +212,13 @@ textarea {
 .result {
   margin-top: 20px;
   font-size: 1.2rem;
-  color: red;
   font-weight: bold;
+}
+
+.result.safe {
+  color: green; /* Green color for safe results */
+}
+
+.result.unsafe {
+  color: red; /* Red color for unsafe results */
 }
