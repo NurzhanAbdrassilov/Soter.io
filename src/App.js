@@ -5,10 +5,14 @@ function App() {
   const [contractFile, setContractFile] = useState(null);
   const [contractCode, setContractCode] = useState('');
   const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false); // State for loading indicator
 
   const handleFileChange = (e) => {
-    setContractFile(e.target.files[0]);
-    setContractCode(''); // Clear the text area if a file is selected
+    const file = e.target.files[0];
+    if (file) {
+      setContractFile(file.name); // Update state with the file name
+      setContractCode(''); // Clear the textarea if a file is uploaded
+    }
   };
 
   const handleCodeChange = (e) => {
@@ -20,9 +24,14 @@ function App() {
     e.preventDefault();
     if (contractFile || contractCode) {
       // Simulate backend processing
-      setResult('The contract is unsafe.');
+      setLoading(true);
+      setTimeout(() => {
+        setLoading(false); // Stop the loading state
+        setResult('The contract is unsafe.'); // Display the result
+      }, Math.random() * 2000 + 3000); // Random delay between 3-5 seconds
     } else {
       setResult('Please upload a smart contract file or paste the code.');
+      return;
     }
   };
 
@@ -59,9 +68,20 @@ function App() {
                   />
                   Upload
                 </label>
+                {contractFile && (
+                    <span className="file-name">
+                      <strong>Uploaded file:</strong> {contractFile}
+                    </span>
+                  )}
               </div>
-              <button type="submit" className="scan-button">
-                Scan for Safety
+              <button type="submit" className="scan-button" disabled={loading}>
+                {loading ? (
+                  <span className="loading">
+                    <span className="spinner"></span> Scanning...
+                  </span>
+                ) : (
+                  'Scan for Safety'
+                )}
               </button>
             </form>
             {result && <p className="result">{result}</p>}
