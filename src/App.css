@@ -222,3 +222,20 @@ textarea {
 .result.unsafe {
   color: red; /* Red color for unsafe results */
 }
+
+.result-container {
+  margin-top: 20px;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.result {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #333;
+  white-space: pre-wrap;
+}

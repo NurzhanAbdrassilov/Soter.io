@@ -1,45 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
 
 function App() {
   const [contractFile, setContractFile] = useState(null);
   const [contractCode, setContractCode] = useState('');
   const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false); // State for loading indicator
-  const [taskCount, setTaskCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setContractFile(file.name); // Update state with the file name
-      setContractCode(''); // Clear the textarea if a file is uploaded
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setContractCode(event.target.result);
+        setContractFile(file.name);
+      };
+      reader.readAsText(file);
+
+      // Reset file input for re-upload
+      e.target.value = '';
     }
   };
 
   const handleCodeChange = (e) => {
     setContractCode(e.target.value);
-    setContractFile(null); // Clear the file input if text is entered
+    setContractFile(null); // Clear the file input state when code is manually entered
   };
 
-  const handleSubmit = (e) => {
+  const resetFileInput = () => {
+    setContractFile(null);
+    setContractCode('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Reset the file input element
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (contractFile || contractCode) {
-      // Simulate backend processing
-      setLoading(true);
-      setResult('');
-      const currentTask = taskCount + 1;
-      setTimeout(() => {
-        setLoading(false);
-        if (currentTask % 2 === 0) {
-          setResult('The contract is safe.');
-        } else {
-          setResult('The contract is unsafe.');
-        }
-        setTaskCount(currentTask);
-      }, Math.random() * 2000 + 3000); // Random delay between 3-5 seconds
-    } else {
+    if (!contractCode) {
       setResult('Please upload a smart contract file or paste the code.');
       return;
+    }
+
+    setLoading(true);
+    setResult(''); // Clear previous results
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ contractCode }),
+      });
+
+      const data = await response.json();
+      setLoading(false);
+
+      if (response.ok) {
+        const vulnerabilities = data.vulnerabilities;
+        const formattedResult = Object.keys(vulnerabilities)
+          .map(
+            (vulnerability) =>
+              `${vulnerability}: ${vulnerabilities[vulnerability].length} instance(s)`
+          )
+          .join('\n');
+
+        setResult(formattedResult || 'No vulnerabilities detected.');
+      } else {
+        setResult(data.error || 'An error occurred.');
+      }
+    } catch (error) {
+      setLoading(false);
+      setResult('Failed to connect to the backend.');
     }
   };
 
@@ -49,9 +83,9 @@ function App() {
       <div className="container">
         {/* Left Section */}
         <div className="left-section">
-        <h1 className="slogan">Soter.io: Safeguarding the Future of Blockchain, One Contract at a Time.</h1>
+          <h1 className="slogan">Soter.io: Safeguarding the Future of Blockchain, One Contract at a Time.</h1>
           <p className="description">
-          Named after the Greek deity of safety, Soter.io is a smart contract security analysis platform designed to enhance the safety of blockchain applications.
+            Named after the Greek deity of safety, Soter.io is a smart contract security analysis platform designed to enhance the safety of blockchain applications.
           </p>
         </div>
 
@@ -64,25 +98,24 @@ function App() {
                   placeholder="Paste your smart contract code here..."
                   value={contractCode}
                   onChange={handleCodeChange}
-                  disabled={contractFile !== null}
                 ></textarea>
                 <p className="or-text">OR</p>
                 <div className="file-upload-wrapper">
-                <label className="file-upload">
-                  <input
-                    type="file"
-                    accept=".sol"
-                    onChange={handleFileChange}
-                    disabled={contractCode !== ''}
-                  />
-                  Upload
-                </label>
-                {contractFile && (
+                  <label className="file-upload">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".sol"
+                      onChange={handleFileChange}
+                    />
+                    Upload
+                  </label>
+                  {contractFile && (
                     <span className="file-name">
                       <strong>Uploaded file:</strong> {contractFile}
                     </span>
                   )}
-                  </div>
+                </div>
               </div>
               <button type="submit" className="scan-button" disabled={loading}>
                 {loading ? (
@@ -94,9 +127,13 @@ function App() {
                 )}
               </button>
             </form>
-            {result && (
-              <p className={`result ${result.includes('unsafe') ? 'unsafe' : 'safe'}`}>{result}</p>
-            )}
+            <div className="result-container">
+              {result && (
+                <pre className="result">
+                  {result}
+                </pre>
+              )}
+            </div>
           </div>
         </div>
       </div>
